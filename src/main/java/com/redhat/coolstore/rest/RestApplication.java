@@ -1,10 +1,8 @@
-package com.redhat.coolstore.rest;
-
-import jakarta.ws.rs.ApplicationPath;
-import jakarta.ws.rs.core.Application;
-
-
-@ApplicationPath("/services")
-public class RestApplication extends Application {
-
-}
+// This file should be removed.
+//
+// In Quarkus, JAX-RS activation is automatic, and this class is no longer necessary.
+// The application's root path, which was defined here as "/services",
+// should be configured in the `src/main/resources/application.properties` file by adding the following line:
+//
+// quarkus.resteasy-reactive.path=/services
+//

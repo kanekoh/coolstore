@@ -3,41 +3,44 @@ package com.redhat.coolstore.service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-import javax.ejb.Remote;
-import javax.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.MediaType;
 
-import com.redhat.coolstore.model.ShoppingCart;
+@Path("/shipping")
+@ApplicationScoped
+public class ShippingService {
 
-@Stateless
-@Remote
-public class ShippingService implements ShippingServiceRemote {
+    @POST
+    @Path("/calculateShipping")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
+    public double calculateShipping(@QueryParam("cartTotal") double cartTotal) {
 
-    @Override
-    public double calculateShipping(ShoppingCart sc) {
+        if (cartTotal >= 0 && cartTotal < 25) {
 
-        if (sc != null) {
+            return 2.99;
 
-            if (sc.getCartItemTotal() >= 0 && sc.getCartItemTotal() < 25) {
+        } else if (cartTotal >= 25 && cartTotal < 50) {
 
-                return 2.99;
+            return 4.99;
 
-            } else if (sc.getCartItemTotal() >= 25 && sc.getCartItemTotal() < 50) {
+        } else if (cartTotal >= 50 && cartTotal < 75) {
 
-                return 4.99;
+            return 6.99;
 
-            } else if (sc.getCartItemTotal() >= 50 && sc.getCartItemTotal() < 75) {
+        } else if (cartTotal >= 75 && cartTotal < 100) {
 
-                return 6.99;
+            return 8.99;
 
-            } else if (sc.getCartItemTotal() >= 75 && sc.getCartItemTotal() < 100) {
+        } else if (cartTotal >= 100 && cartTotal < 10000) {
 
-                return 8.99;
-
-            } else if (sc.getCartItemTotal() >= 100 && sc.getCartItemTotal() < 10000) {
-
-                return 10.99;
-
-            }
+            return 10.99;
 
         }
 
@@ -45,24 +48,23 @@ public class ShippingService implements ShippingServiceRemote {
 
     }
 
-    @Override
-    public double calculateShippingInsurance(ShoppingCart sc) {
+    @POST
+    @Path("/calculateShippingInsurance")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
+    public double calculateShippingInsurance(@QueryParam("cartTotal") double cartTotal) {
 
-        if (sc != null) {
+        if (cartTotal >= 25 && cartTotal < 100) {
 
-            if (sc.getCartItemTotal() >= 25 && sc.getCartItemTotal() < 100) {
+            return getPercentOfTotal(cartTotal, 0.02);
 
-                return getPercentOfTotal(sc.getCartItemTotal(), 0.02);
+        } else if (cartTotal >= 100 && cartTotal < 500) {
 
-            } else if (sc.getCartItemTotal() >= 100 && sc.getCartItemTotal() < 500) {
+            return getPercentOfTotal(cartTotal, 0.015);
 
-                return getPercentOfTotal(sc.getCartItemTotal(), 0.015);
+        } else if (cartTotal >= 500 && cartTotal < 10000) {
 
-            } else if (sc.getCartItemTotal() >= 500 && sc.getCartItemTotal() < 10000) {
-
-                return getPercentOfTotal(sc.getCartItemTotal(), 0.01);
-
-            }
+            return getPercentOfTotal(cartTotal, 0.01);
 
         }
 

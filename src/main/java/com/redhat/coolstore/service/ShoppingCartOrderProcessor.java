@@ -1,16 +1,16 @@
 package com.redhat.coolstore.service;
 
 import java.util.logging.Logger;
-import javax.ejb.Stateless;
-import javax.annotation.Resource;
-import javax.inject.Inject;
-import javax.jms.JMSContext;
-import javax.jms.Topic;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import org.eclipse.microprofile.reactive.messaging.Channel;
+import io.smallrye.reactive.messaging.MutinyEmitter;
+import io.smallrye.reactive.messaging.annotations.Broadcast;
 
 import com.redhat.coolstore.model.ShoppingCart;
 import com.redhat.coolstore.utils.Transformers;
 
-@Stateless
+@ApplicationScoped
 public class ShoppingCartOrderProcessor  {
 
     @Inject
@@ -18,16 +18,20 @@ public class ShoppingCartOrderProcessor  {
 
 
     @Inject
-    private transient JMSContext context;
-
-    @Resource(lookup = "java:/topic/orders")
-    private Topic ordersTopic;
+    @Channel("orders")
+    @Broadcast
+    MutinyEmitter<String> ordersEmitter;
 
     
   
     public void  process(ShoppingCart cart) {
-        log.info("Sending order from processor: ");
-        context.createProducer().send(ordersTopic, Transformers.shoppingCartToJson(cart));
+        String cartJson = Transformers.shoppingCartToJson(cart);
+        log.info("Sending order from processor: " + cartJson);
+        ordersEmitter.send(cartJson)
+            .subscribe().with(
+                success -> log.info("Order message sent successfully."),
+                failure -> log.severe("Failed to send order message: " + failure.getMessage())
+            );
     }
 
 

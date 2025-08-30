@@ -1,7 +1,10 @@
 package com.redhat.coolstore.service;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.SessionScoped;
 import jakarta.inject.Inject;
 
@@ -12,8 +15,10 @@ import com.redhat.coolstore.model.ShoppingCart;
 import com.redhat.coolstore.model.ShoppingCartItem;
 import com.redhat.coolstore.rest.client.ShippingServiceClient;
 
-@SessionScoped
+@ApplicationScoped
 public class ShoppingCartService  {
+
+    private final Map<String, ShoppingCart> carts = new ConcurrentHashMap<>();
 
     @Inject
     Logger log;
@@ -24,13 +29,13 @@ public class ShoppingCartService  {
     @Inject
     PromoService ps;
 
+    @Inject
     @RestClient
     ShippingServiceClient ss;
 
     @Inject
     ShoppingCartOrderProcessor shoppingCartOrderProcessor;
 
-    private ShoppingCart cart  = new ShoppingCart(); //Each user can have multiple shopping carts (tabbed browsing)
 
    
 
@@ -38,7 +43,7 @@ public class ShoppingCartService  {
     }
 
     public ShoppingCart getShoppingCart(String cartId) {
-        return cart;
+        return carts.computeIfAbsent(cartId, id -> new ShoppingCart());
     }
 
     public ShoppingCart checkOutShoppingCart(String cartId) {
@@ -54,30 +59,29 @@ public class ShoppingCartService  {
 
     public void priceShoppingCart(ShoppingCart sc) {
 
-        if (sc != null) {
+        if (sc == null) return;
 
-            initShoppingCartForPricing(sc);
+        initShoppingCartForPricing(sc);
 
-            if (sc.getShoppingCartItemList() != null && sc.getShoppingCartItemList().size() > 0) {
+        if (sc.getShoppingCartItemList() != null && !sc.getShoppingCartItemList().isEmpty()) {
 
-                ps.applyCartItemPromotions(sc);
+            ps.applyCartItemPromotions(sc);
 
-                for (ShoppingCartItem sci : sc.getShoppingCartItemList()) {
+            for (ShoppingCartItem sci : sc.getShoppingCartItemList()) {
 
-                    sc.setCartItemPromoSavings(
-                            sc.getCartItemPromoSavings() + sci.getPromoSavings() * sci.getQuantity());
-                    sc.setCartItemTotal(sc.getCartItemTotal() + sci.getPrice() * sci.getQuantity());
-
-                }
-
-                sc.setShippingTotal(ss.calculateShipping(sc));
-
-                if (sc.getCartItemTotal() >= 25) {
-                    sc.setShippingTotal(sc.getShippingTotal()
-                            + ss.calculateShippingInsurance(sc));
-                }
+                sc.setCartItemPromoSavings(
+                        sc.getCartItemPromoSavings() + sci.getPromoSavings() * sci.getQuantity());
+                sc.setCartItemTotal(sc.getCartItemTotal() + sci.getPrice() * sci.getQuantity());
 
             }
+
+            sc.setShippingTotal(ss.calculateShipping(sc));
+
+            if (sc.getCartItemTotal() >= 25) {
+                sc.setShippingTotal(sc.getShippingTotal()
+                        + ss.calculateShippingInsurance(sc));
+            }
+
 
             ps.applyShippingPromotions(sc);
 
