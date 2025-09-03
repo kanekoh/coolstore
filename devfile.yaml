@@ -1,0 +1,48 @@
+schemaVersion: 2.2.2
+metadata:
+  name: openjdk-workspace
+components:
+  - name: tools
+    container:
+      image: quay.io/kanekoh/openjdk:main
+      cpuRequest: 50m
+      cpuLimit: 1000m
+      memoryRequest: 4Gi
+      memoryLimit: 8Gi
+      env:
+        - name: HOME
+          value: "/projects/home"
+        - name: SSL_CERT_DIR
+          value: /var/run/secrets/kubernetes.io/serviceaccount
+        - name: VSCODE_DEFAULT_WORKSPACE
+          value: /projects/coolstore/.code-workspace
+events:
+  postStart:
+  - enforce-provider-settings
+
+commands:
+  - id: enforce-provider-settings
+    exec:
+      component: tools
+      label: Enforce Konveyor provider-settings.yaml
+      commandLine: |
+        bash -lc '
+          set -euo pipefail
+          SRC="/provider-settings.yaml"
+          DST="/checode/remote/data/User/globalStorage/konveyor.konveyor/settings/provider-settings.yaml"
+          mkdir -p "$(dirname "$DST")"
+          if [[ ! -f "$SRC" ]]; then
+            echo "[enforce] template not found: $SRC" >&2
+            exit 1
+          fi
+          # バックアップ（存在時のみ）
+          [[ -f "$DST" ]] && cp -a "$DST" "${DST}.bak.$(date +%Y%m%d%H%M%S)" || true
+          # 強制置換
+          install -m 0644 "$SRC" "$DST"
+          # 読み取り専用化（実行中の手編集を抑止）
+          chmod 0444 "$DST"
+          echo "[enforce] replaced and set read-only -> $DST"
+        '
+      group:
+        kind: build
+        isDefault: true
