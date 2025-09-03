@@ -17,8 +17,7 @@ components:
         - name: VSCODE_DEFAULT_WORKSPACE
           value: /projects/coolstore/.code-workspace
 events:
-  postStart:
-  - enforce-provider-settings
+  postStart: []
 
 commands:
   - id: enforce-provider-settings
