@@ -5,7 +5,7 @@ components:
   - name: tools
     container:
       image: quay.io/kanekoh/openjdk:main
-      cpuRequest: 500m
+      cpuRequest: 50m
       cpuLimit: 1000m
       memoryRequest: 4Gi
       memoryLimit: 8Gi
@@ -17,7 +17,8 @@ components:
         - name: VSCODE_DEFAULT_WORKSPACE
           value: /projects/coolstore/.code-workspace
 events:
-  postStart: []
+  postStart:
+  - enforce-provider-settings
 
 commands:
   - id: enforce-provider-settings
