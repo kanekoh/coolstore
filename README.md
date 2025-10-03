@@ -1,4 +1,4 @@
-# CoolStore Monolith
+## 模範解答
 
 This repository has the complete coolstore monolith built as a Java EE 7 application. To deploy it on JBoss 7.4 follow the instructions below
 
@@ -185,4 +185,3 @@ If you perform a test checkout of an item, you should see both nodes processing 
 ## Solution
 
 The solution files for the workshop are located in /var/assets.
-
