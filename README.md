@@ -180,3 +180,9 @@ If you perform a test checkout of an item, you should see both nodes processing 
 
 
 ```
+
+
+## Solution
+
+The solution files for the workshop are located in /var/assets.
+
